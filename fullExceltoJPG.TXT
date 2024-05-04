@@ -1,0 +1,48 @@
+Sub ExportToJPEG()
+    Dim Sheet As Object ' Using Object type to handle different sheet types
+    Dim FileName As String
+    Dim ExcelFilePath As String
+    Dim Plage As Range
+    Dim FilePath As String
+    Dim FullFilePath As String
+    Dim StartCell As Range
+    Dim chartSheet As Chart
+    Dim exportPath As String
+    
+    ' Set the values for the variables
+    FileName = "Screenshot"
+    ' Dynamically set ExcelFilePath to the current workbook's path
+    ExcelFilePath = ThisWorkbook.Path & "\"
+    ' Get the path of the current Excel file
+    exportPath = ExcelFilePath
+    
+    ' Loop through each sheet in the workbook
+    For Each Sheet In ThisWorkbook.Sheets
+        If TypeName(Sheet) = "Worksheet" Then
+            ' Set the range to be captured using UsedRange
+            Set Plage = Sheet.UsedRange
+            ' Check if there's data on the sheet
+            If Not Plage Is Nothing Then
+                ' Copy the range as a picture
+                Plage.CopyPicture
+                ' Create a chart object and paste the picture
+                With Sheet.ChartObjects.Add(0, 0, Plage.Width, Plage.Height)
+                    .Activate
+                    .Chart.Paste
+                    ' Construct the destination file path for the image file
+                    FullFilePath = exportPath & Sheet.Name & ".jpg"
+                    ' Export the chart as a JPG image to the same folder as the Excel file
+                    .Chart.Export FullFilePath, "JPG"
+                End With
+                ' Delete the temporary chart object
+                Sheet.ChartObjects(Sheet.ChartObjects.Count).Delete
+            End If
+        ElseIf TypeName(Sheet) = "Chart" Then
+            ' Export the chart as JPEG with sheet name
+            Sheet.Export exportPath & Sheet.Name & ".jpg", "JPEG"
+        End If
+    Next Sheet
+    ' Clean up
+    Set Plage = Nothing
+    MsgBox "Export completed successfully to: " & exportPath, vbInformation
+End Sub
